@@ -25,7 +25,9 @@ public:
   int getDay();
   int getMonth();
   int getWeekday();
+  int getYear();
 
   bool isAM();
   bool is24hFormat();
+  bool isDST();
 };
