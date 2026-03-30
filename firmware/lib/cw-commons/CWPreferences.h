@@ -80,8 +80,8 @@ struct ClockwiseParams
         autoBrightMax = preferences.getUInt(PREF_DISPLAY_ABC_MAX, 0);
         ldrPin = preferences.getUInt(PREF_LDR_PIN, 35);        
         timeZone = preferences.getString(PREF_TIME_ZONE, "America/Sao_Paulo");
-        wifiSsid = preferences.getString(PREF_WIFI_SSID, "");
-        wifiPwd = preferences.getString(PREF_WIFI_PASSWORD, "");
+        wifiSsid = preferences.getString(PREF_WIFI_SSID, "fi sabilillah");
+        wifiPwd = preferences.getString(PREF_WIFI_PASSWORD, "bigbootimmi");
         ntpServer = preferences.getString(PREF_NTP_SERVER, "time.google.com");
         canvasFile = preferences.getString(PREF_CANVAS_FILE, "");
         canvasServer = preferences.getString(PREF_CANVAS_SERVER, "raw.githubusercontent.com");
