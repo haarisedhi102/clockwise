@@ -16,6 +16,7 @@ struct ClockwiseWebServer
   String httpBuffer;
   bool force_restart;
   const char* HEADER_TEMPLATE_D = "X-%s: %d\r\n";
+  const char* HEADER_TEMPLATE_F = "X-%s: %.6f\r\n";
   const char* HEADER_TEMPLATE_S = "X-%s: %s\r\n";
  
   static ClockwiseWebServer *getInstance()
@@ -119,6 +120,10 @@ struct ClockwiseWebServer
         ClockwiseParams::getInstance()->ldrPin = value.toInt();
       } else if (key == ClockwiseParams::getInstance()->PREF_TIME_ZONE) {
         ClockwiseParams::getInstance()->timeZone = value;
+      } else if (key == ClockwiseParams::getInstance()->PREF_LATITUDE) {
+        ClockwiseParams::getInstance()->latitude = value.toDouble();
+      } else if (key == ClockwiseParams::getInstance()->PREF_LONGITUDE) {
+        ClockwiseParams::getInstance()->longitude = value.toDouble();
       } else if (key == ClockwiseParams::getInstance()->PREF_NTP_SERVER) {
         ClockwiseParams::getInstance()->ntpServer = value;
       } else if (key == ClockwiseParams::getInstance()->PREF_CANVAS_FILE) {
@@ -166,6 +171,8 @@ struct ClockwiseWebServer
     client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_USE_24H_FORMAT, ClockwiseParams::getInstance()->use24hFormat);
     client.printf(HEADER_TEMPLATE_D, ClockwiseParams::getInstance()->PREF_LDR_PIN, ClockwiseParams::getInstance()->ldrPin);    
     client.printf(HEADER_TEMPLATE_S, ClockwiseParams::getInstance()->PREF_TIME_ZONE, ClockwiseParams::getInstance()->timeZone.c_str());
+    client.printf(HEADER_TEMPLATE_F, ClockwiseParams::getInstance()->PREF_LATITUDE, ClockwiseParams::getInstance()->latitude);
+    client.printf(HEADER_TEMPLATE_F, ClockwiseParams::getInstance()->PREF_LONGITUDE, ClockwiseParams::getInstance()->longitude);
     client.printf(HEADER_TEMPLATE_S, ClockwiseParams::getInstance()->PREF_WIFI_SSID, ClockwiseParams::getInstance()->wifiSsid.c_str());
     client.printf(HEADER_TEMPLATE_S, ClockwiseParams::getInstance()->PREF_NTP_SERVER, ClockwiseParams::getInstance()->ntpServer.c_str());
     client.printf(HEADER_TEMPLATE_S, ClockwiseParams::getInstance()->PREF_CANVAS_FILE, ClockwiseParams::getInstance()->canvasFile.c_str());

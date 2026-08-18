@@ -1,10 +1,6 @@
 
 #include "Clockface.h"
-#include <Dusk2Dawn.h>
-
-// Initialize Dusk2Dawn with your location (latitude, longitude, and timezone offset)
-Dusk2Dawn location(42.0460603, -88.1346628, -6); // Example: Los Angeles
-
+#include <CWPreferences.h>
 
 const char* FORMAT_TWO_DIGITS = "%02d";
 
@@ -30,6 +26,12 @@ Clockface::Clockface(Adafruit_GFX* display)
 
 void Clockface::setup(CWDateTime *dateTime) {
   this->_dateTime = dateTime;
+  const auto* settings = ClockwiseParams::getInstance();
+  const int16_t offsetMinutes = dateTime->getTimezoneOffset();
+  const double baseOffsetHours = -(offsetMinutes +
+                                   (dateTime->isDST() ? 60 : 0)) / 60.0;
+  delete _location;
+  _location = new Dusk2Dawn(settings->latitude, settings->longitude, baseOffsetHours);
   Locator::getDisplay()->setTextWrap(true);
   Locator::getDisplay()->fillRect(0, 0, 64, 64, 0x0000);  
 
@@ -65,17 +67,25 @@ void Clockface::update()
 
 void Clockface::updateSunTimes() 
 {
+  const auto* settings = ClockwiseParams::getInstance();
+  const int16_t offsetMinutes = _dateTime->getTimezoneOffset();
+  const double baseOffsetHours = -(offsetMinutes +
+                                   (_dateTime->isDST() ? 60 : 0)) / 60.0;
   // Get the current date
   int year = _dateTime->getYear();
   int month = _dateTime->getMonth();
   int day = _dateTime->getDay();
+  int rawHour = _dateTime->getHour();
+  int minute = _dateTime->getMinute();
+  int second = _dateTime->getSecond();
+  bool is24h = _dateTime->is24hFormat();
   bool isDST = _dateTime->isDST();
   // Calculate sunrise and sunset times
-  int sunrise = location.sunrise(year, month, day, isDST);
-  int sunset = location.sunset(year, month, day, isDST);
+  int sunrise = _location->sunrise(year, month, day, isDST);
+  int sunset = _location->sunset(year, month, day, isDST);
 
   bool isAM = _dateTime->isAM(); // Use isAM() to determine if it's AM
-  int hour = _dateTime->getHour();
+  int hour = rawHour;
   // Convert 12-hour format to 24-hour format if necessary
   if (!isAM && hour != 12) {
     hour += 12; // Add 12 hours for PM times (except 12 PM)
@@ -84,10 +94,12 @@ void Clockface::updateSunTimes()
   }
 
   // Get the current time in minutes since midnight
-  int currentMinutes = hour * 60 + _dateTime->getMinute();
-  // Debug: Print the current time in minutes
-  Serial.print("Current time (minutes): ");
-  Serial.println(currentMinutes);
+  int currentMinutes = hour * 60 + minute;
+  Serial.printf("[Sun] date=%04d-%02d-%02d local=%02d:%02d:%02d rawHour=%d is24h=%d isAM=%d DST=%d\n",
+                year, month, day, hour, minute, second, rawHour, is24h, isAM, isDST);
+  Serial.printf("[Sun] location lat=%.6f lon=%.6f offsetMinutes=%d baseOffsetHours=%.2f sunrise=%d sunset=%d currentMinutes=%d\n",
+                settings->latitude, settings->longitude, offsetMinutes, baseOffsetHours,
+                sunrise, sunset, currentMinutes);
 
   // Calculate time till next sunrise or sunset
   int timeTillEvent = 0;
@@ -109,7 +121,9 @@ void Clockface::updateSunTimes()
   
 
   char time[6];
-  Dusk2Dawn::min2str(time, timeTillEvent);
+  bool formatted = Dusk2Dawn::min2str(time, timeTillEvent);
+  Serial.printf("[Sun] event=%s eventMinutes=%d formatted=%s ok=%d\n",
+                eventLabel, timeTillEvent, time, formatted);
 
   // Display the time till sunrise/sunset on the clockface
   Locator::getDisplay()->fillRect(0, 45, 64, 19, 0x0000); // Clear the area

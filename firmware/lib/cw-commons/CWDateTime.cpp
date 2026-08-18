@@ -93,3 +93,8 @@ bool CWDateTime::isDST()
 {
   return myTZ.isDST();
 }
+
+int16_t CWDateTime::getTimezoneOffset()
+{
+  return myTZ.getOffset();
+}

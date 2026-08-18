@@ -30,4 +30,5 @@ public:
   bool isAM();
   bool is24hFormat();
   bool isDST();
+  int16_t getTimezoneOffset();
 };

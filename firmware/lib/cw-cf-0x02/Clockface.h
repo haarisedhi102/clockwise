@@ -9,6 +9,7 @@
 #include <Object.h>
 #include <ImageUtils.h>
 #include <WiFi.h>
+#include <Dusk2Dawn.h>
 
 #include "hour8pt7b.h"
 #include "minute7pt7b.h"
@@ -24,6 +25,7 @@ class Clockface: public IClockface {
   private:
     Adafruit_GFX* _display;
     CWDateTime* _dateTime;
+    Dusk2Dawn* _location = nullptr;
     void timeInWords(int h, int m, char* hWords, char* mWords);
     void updateTime();
     void updateDate();
