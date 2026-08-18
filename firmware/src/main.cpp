@@ -10,6 +10,7 @@
 #include <CWWebServer.h>
 #include <StatusController.h>
 
+#define NIGHT_BRIGHTNESS 3
 #define MIN_BRIGHT_DISPLAY_ON 4
 #define MIN_BRIGHT_DISPLAY_OFF 0
 
@@ -22,6 +23,7 @@ Clockface *clockface;
 WiFiController wifi;
 CWDateTime cwDateTime;
 
+long scheduledBrightMillis = 0;
 bool autoBrightEnabled;
 long autoBrightMillis = 0;
 uint8_t currentBrightSlot = -1;
@@ -78,6 +80,18 @@ void displaySetup(bool swapBlueGreen, bool swapBlueRed, uint8_t displayBright, u
   dma_display->setBrightness8(displayBright);
   dma_display->clearScreen();
   dma_display->setRotation(displayRotation);
+}
+
+void scheduledBrightnessControl()
+{
+  if (clockface != nullptr && millis() - scheduledBrightMillis > 3000) {
+    const uint8_t configuredBrightness = ClockwiseParams::getInstance()->displayBright;
+    const uint8_t brightness = clockface->isDaylight()
+        ? configuredBrightness
+        : (configuredBrightness < NIGHT_BRIGHTNESS ? configuredBrightness : NIGHT_BRIGHTNESS);
+    dma_display->setBrightness8(brightness);
+    scheduledBrightMillis = millis();
+  }
 }
 
 void automaticBrightControl()
@@ -140,6 +154,7 @@ void setup()
         ClockwiseParams::getInstance()->ntpServer.c_str(),
         ClockwiseParams::getInstance()->manualPosix.c_str());
     clockface->setup(&cwDateTime);
+    scheduledBrightMillis = millis() - 3001;
   }
 }
 
@@ -158,5 +173,9 @@ void loop()
     clockface->update();
   }
 
-  automaticBrightControl();
+  if (autoBrightEnabled) {
+    automaticBrightControl();
+  } else {
+    scheduledBrightnessControl();
+  }
 }

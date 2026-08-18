@@ -18,6 +18,36 @@ struct ClockwiseWebServer
   const char* HEADER_TEMPLATE_D = "X-%s: %d\r\n";
   const char* HEADER_TEMPLATE_F = "X-%s: %.6f\r\n";
   const char* HEADER_TEMPLATE_S = "X-%s: %s\r\n";
+
+  String urlDecode(const String& encoded)
+  {
+    String decoded;
+    decoded.reserve(encoded.length());
+
+    for (size_t i = 0; i < encoded.length(); i++) {
+      if (encoded[i] == '%' && i + 2 < encoded.length()) {
+        char high = encoded[i + 1];
+        char low = encoded[i + 2];
+        auto hexValue = [](char c) -> int {
+          if (c >= '0' && c <= '9') return c - '0';
+          if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+          if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+          return -1;
+        };
+        int highValue = hexValue(high);
+        int lowValue = hexValue(low);
+        if (highValue >= 0 && lowValue >= 0) {
+          decoded += static_cast<char>((highValue << 4) | lowValue);
+          i += 2;
+          continue;
+        }
+      }
+
+      decoded += encoded[i] == '+' ? ' ' : encoded[i];
+    }
+
+    return decoded;
+  }
  
   static ClockwiseWebServer *getInstance()
   {
@@ -68,6 +98,8 @@ struct ClockwiseWebServer
             {
               key = path.substring(path.indexOf('?') + 1, path.indexOf('='));
               value = path.substring(path.indexOf('=') + 1);
+              key = urlDecode(key);
+              value = urlDecode(value);
               path = path.substring(0, path.indexOf('?'));
             }
 

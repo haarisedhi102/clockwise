@@ -64,6 +64,29 @@ void Clockface::update()
   }  
 }
 
+bool Clockface::isDaylight()
+{
+  const int sunrise = _location->sunrise(_dateTime->getYear(),
+                                         _dateTime->getMonth(),
+                                         _dateTime->getDay(),
+                                         _dateTime->isDST());
+  const int sunset = _location->sunset(_dateTime->getYear(),
+                                       _dateTime->getMonth(),
+                                       _dateTime->getDay(),
+                                       _dateTime->isDST());
+  int hour = _dateTime->getHour();
+  if (!_dateTime->is24hFormat()) {
+    if (!_dateTime->isAM() && hour != 12) {
+      hour += 12;
+    } else if (_dateTime->isAM() && hour == 12) {
+      hour = 0;
+    }
+  }
+  const int currentMinutes = hour * 60 + _dateTime->getMinute();
+
+  return currentMinutes >= sunrise && currentMinutes < sunset;
+}
+
 
 void Clockface::updateSunTimes() 
 {
