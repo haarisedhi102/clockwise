@@ -94,6 +94,30 @@ const char SETTINGS_PAGE[] PROGMEM = R""""(
           property: "timeZone"
         },
         {
+          title: "Location",
+          description: "Detect location using browser WiFi/GPS when available, or approximate it from your public IP address.",
+          formInput: "<button class='w3-button w3-blue' onclick='detectLocation()'>Detect Location</button>",
+          icon: "fa-map-marker",
+          save: "detectLocation()",
+          property: "location"
+        },
+        {
+          title: "Latitude",
+          description: "Fallback decimal latitude. North is positive.",
+          formInput: "<input id='latitude' class='w3-input w3-light-grey' type='number' step='any' min='-90' max='90' value='" + settings.latitude + "'>",
+          icon: "fa-map-marker",
+          save: "updatePreference('latitude', latitude.value)",
+          property: "latitude"
+        },
+        {
+          title: "Longitude",
+          description: "Fallback decimal longitude. East is positive.",
+          formInput: "<input id='longitude' class='w3-input w3-light-grey' type='number' step='any' min='-180' max='180' value='" + settings.longitude + "'>",
+          icon: "fa-map-marker",
+          save: "updatePreference('longitude', longitude.value)",
+          property: "longitude"
+        },
+        {
           title: "NTP Server",
           description: "Configure your prefered NTP Server. You can use one of the <a href='https://www.ntppool.org'>NTP Pool Project</a> pools or a local one.",
           formInput: "<input id='ntp' class='w3-input w3-light-grey' name='ntp' type='text' placeholder='NTP Server' value='" + settings.ntpserver + "'>",
@@ -210,12 +234,44 @@ const char SETTINGS_PAGE[] PROGMEM = R""""(
           document.getElementById('status').style.display = 'block';
         }
       };
-      xhr.open('POST', '/set?' + key + '=' + value);
+      xhr.open('POST', '/set?' + encodeURIComponent(key) + '=' + encodeURIComponent(value));
       xhr.send();
 
       setTimeout(() => {
         document.getElementById('status').style.display = 'none';
       }, 2000);
+    }
+
+    function detectLocation() {
+      const saveLocation = (latitude, longitude) => {
+        if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+          throw new Error('Invalid coordinates');
+        }
+
+        const latitudeInput = document.getElementById('latitude');
+        const longitudeInput = document.getElementById('longitude');
+        if (latitudeInput) latitudeInput.value = latitude;
+        if (longitudeInput) longitudeInput.value = longitude;
+        updatePreference('latitude', latitude);
+        updatePreference('longitude', longitude);
+      };
+
+      const useIpLocation = () => fetch('https://ipapi.co/json/')
+        .then(response => {
+          if (!response.ok) throw new Error('Location service unavailable');
+          return response.json();
+        })
+        .then(location => saveLocation(Number(location.latitude), Number(location.longitude)))
+        .catch(() => alert('Unable to determine your location. Enter coordinates manually.'));
+
+      if (!navigator.geolocation || !window.isSecureContext) {
+        useIpLocation();
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition((position) => {
+        saveLocation(position.coords.latitude, position.coords.longitude);
+      }, useIpLocation);
     }
 
     function splitHeaders(request) {

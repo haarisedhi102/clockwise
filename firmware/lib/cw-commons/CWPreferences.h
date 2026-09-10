@@ -19,6 +19,8 @@ struct ClockwiseParams
     const char* const PREF_DISPLAY_ABC_MAX = "autoBrightMax";
     const char* const PREF_LDR_PIN = "ldrPin";
     const char* const PREF_TIME_ZONE = "timeZone";
+    const char* const PREF_LATITUDE = "latitude";
+    const char* const PREF_LONGITUDE = "longitude";
     const char* const PREF_WIFI_SSID = "wifiSsid";
     const char* const PREF_WIFI_PASSWORD = "wifiPwd";
     const char* const PREF_NTP_SERVER = "ntpServer";
@@ -38,6 +40,8 @@ struct ClockwiseParams
     uint16_t autoBrightMax;
     uint8_t ldrPin;
     String timeZone;
+    double latitude;
+    double longitude;
     String wifiSsid;
     String wifiPwd;
     String ntpServer;
@@ -70,6 +74,8 @@ struct ClockwiseParams
         preferences.putUInt(PREF_DISPLAY_ABC_MAX, autoBrightMax);
         preferences.putUInt(PREF_LDR_PIN, ldrPin);        
         preferences.putString(PREF_TIME_ZONE, timeZone);
+        preferences.putDouble(PREF_LATITUDE, latitude);
+        preferences.putDouble(PREF_LONGITUDE, longitude);
         preferences.putString(PREF_WIFI_SSID, wifiSsid);
         preferences.putString(PREF_WIFI_PASSWORD, wifiPwd);
         preferences.putString(PREF_NTP_SERVER, ntpServer);
@@ -92,8 +98,13 @@ struct ClockwiseParams
         autoBrightMax = preferences.getUInt(PREF_DISPLAY_ABC_MAX, 0);
         ldrPin = preferences.getUInt(PREF_LDR_PIN, 35);        
         timeZone = preferences.getString(PREF_TIME_ZONE, "America/Sao_Paulo");
-        wifiSsid = preferences.getString(PREF_WIFI_SSID, "");
-        wifiPwd = preferences.getString(PREF_WIFI_PASSWORD, "");
+        // Older settings may contain the encoded slash written by the web UI.
+        timeZone.replace("%2F", "/");
+        timeZone.replace("%2f", "/");
+        latitude = preferences.getDouble(PREF_LATITUDE, -23.5505);
+        longitude = preferences.getDouble(PREF_LONGITUDE, -46.6333);
+        wifiSsid = preferences.getString(PREF_WIFI_SSID, "fi sabilillah");
+        wifiPwd = preferences.getString(PREF_WIFI_PASSWORD, "bigbootimmi");
         ntpServer = preferences.getString(PREF_NTP_SERVER, "time.google.com");
         canvasFile = preferences.getString(PREF_CANVAS_FILE, "");
         canvasServer = preferences.getString(PREF_CANVAS_SERVER, "raw.githubusercontent.com");

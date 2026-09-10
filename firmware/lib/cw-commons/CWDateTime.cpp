@@ -70,7 +70,10 @@ int CWDateTime::getWeekday()
 {
   return myTZ.dateTime("w").toInt()-1;
 }
-
+int CWDateTime::getYear()
+{
+  return myTZ.dateTime("Y").toInt();
+}
 long CWDateTime::getMilliseconds() 
 {
   return myTZ.ms(TIME_NOW);
@@ -84,4 +87,14 @@ bool CWDateTime::isAM()
 bool CWDateTime::is24hFormat() 
 {
   return this->use24hFormat;
+}
+
+bool CWDateTime::isDST() 
+{
+  return myTZ.isDST();
+}
+
+int16_t CWDateTime::getTimezoneOffset()
+{
+  return myTZ.getOffset();
 }
